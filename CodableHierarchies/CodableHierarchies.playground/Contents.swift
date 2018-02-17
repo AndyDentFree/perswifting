@@ -1,4 +1,5 @@
-// Initial Playground - a hierarchy
+// Demo of a polymorphic hierarchy of different classes implementing a protocol
+// and still being Codable
 
 import Foundation
 
@@ -47,19 +48,22 @@ class Walker : BaseBeast, Codable {
     if numLegs == 0 {
       return "\(name) Wriggles on its belly"
     }
-    let maybeWaggle = hasTail ? "waggling its tail" : ""
+    let maybeWaggle = hasTail ? "wagging its tail" : ""
     return "\(name) Runs on \(numLegs) legs \(maybeWaggle)"
   }
 }
 
-
+// Uses an explicit index we decode first, to select factory function used to decode polymorphic type
+// This is in contrast to the current "traditional" method where decoding is attempted and fails for each type
+// This pattern of "leading type code" can be used in more general encoding situations, not just with Codable
+//: **WARNING** there is one vulnerable practice here - we rely on the BaseBeast types having a typeCode which
+//: is a valid index into the arrays `encoders` and `factories`
 struct CodableRef : Codable {
-  let typeCode:Int
-  let refTo:BaseBeast  //TODO use an operator to transparently cast these to refTo so they act like a SmartPointer
+  let refTo:BaseBeast  //In C++ would use an operator to transparently cast CodableRef to BaseBeast
   
   enum CodingKeys : Int, CodingKey {
     case typeCode
-    case refTo
+    // as we handle all the explicit coding and decoding, we have keys for the polymorphic types too
     case dumbBeast
     case flyer
     case walker
@@ -82,21 +86,21 @@ struct CodableRef : Codable {
     {(d) in try d.decode(Walker.self, forKey:.walker)}
   ]
 
-  init(typeCode:Int, refTo:BaseBeast) {
-    self.typeCode = typeCode
+  init(refTo:BaseBeast) {
     self.refTo = refTo
   }
   
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    self.typeCode = try container.decode(Int.self, forKey:.typeCode)
-    self.refTo = try CodableRef.factories[self.typeCode](container)
+    let typeCode = try container.decode(Int.self, forKey:.typeCode)
+    self.refTo = try CodableRef.factories[typeCode](container)
   }
   
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
-    try container.encode(self.typeCode, forKey:.typeCode)
-    try CodableRef.encoders[self.typeCode](&container, refTo)
+    let typeCode = self.refTo.type()
+    try container.encode(typeCode, forKey:.typeCode)
+    try CodableRef.encoders[typeCode](&container, refTo)
   }
 }
 
@@ -104,13 +108,15 @@ struct CodableRef : Codable {
 struct Zoo : Codable {
   var creatures = [CodableRef]()
   init(creatures:[BaseBeast]) {
-    self.creatures = creatures.map {CodableRef(typeCode:$0.type(), refTo:$0)}
+    self.creatures = creatures.map {CodableRef(refTo:$0)}
   }
   func dump() {
     creatures.forEach { print($0.refTo.move()) }
   }
 }
 
+
+//: ---- Demo of encoding and decoding working ----
 let startZoo = Zoo(creatures: [
   DumbBeast(name:"Rock"),
   Flyer(name:"Kookaburra", maxAltitude:5000),
