@@ -10,11 +10,48 @@ protocol BaseBeast  {
 
 class DumbBeast : BaseBeast, Codable  {
   static let polyType = 0
+  func type() -> Int { return DumbBeast.polyType }
+
   var name:String
   init(name:String) { self.name = name }
   func move() -> String { return "\(name) Sits there looking stupid" }
-  func type() -> Int { return DumbBeast.polyType }
 }
+
+class Flyer : BaseBeast, Codable {
+  static let polyType = 1
+  func type() -> Int { return Flyer.polyType }
+
+  var name:String
+  let maxAltitude:Int
+  init(name:String, maxAltitude:Int) {
+    self.maxAltitude = maxAltitude
+    self.name = name
+  }
+  func move() -> String { return "\(name) Flies up to \(maxAltitude)"}
+}
+
+
+class Walker : BaseBeast, Codable {
+  static let polyType = 2
+  func type() -> Int { return Walker.polyType }
+
+  var name:String
+  let numLegs: Int
+  let hasTail: Bool
+  init(name:String, legs:Int=4, hasTail:Bool=true) {
+    self.numLegs = legs
+    self.hasTail = hasTail
+    self.name = name
+  }
+  func move() -> String {
+    if numLegs == 0 {
+      return "\(name) Wriggles on its belly"
+    }
+    let maybeWaggle = hasTail ? "waggling its tail" : ""
+    return "\(name) Runs on \(numLegs) legs \(maybeWaggle)"
+  }
+}
+
 
 struct CodableRef : Codable {
   let typeCode:Int
@@ -28,15 +65,22 @@ struct CodableRef : Codable {
     case walker
   }
   
-  typealias Factory = (Decoder) -> BaseBeast
- /* static var factories:[Factory] = [
-  {(d) in return d.decode(DumbBeast.self, forKey:.dumbBeast)}
-    
-  ]*/
   typealias EncContainer = KeyedEncodingContainer<CodingKeys>
-  static var encDumb = { (enc:inout EncContainer, beast:BaseBeast) in try enc.encode(beast as! DumbBeast, forKey:.dumbBeast) }
   typealias DecContainer = KeyedDecodingContainer<CodingKeys>
-  static var decDumb = { (dec:DecContainer) in try dec.decode(DumbBeast.self, forKey:.dumbBeast) }
+  typealias BeastEnc = (inout EncContainer, BaseBeast) throws -> ()
+  typealias BeastDec = (DecContainer) throws -> BaseBeast
+  
+  static var encoders:[BeastEnc] = [
+    {(e, b) in try e.encode(b as! DumbBeast, forKey:.dumbBeast)},
+    {(e, b) in try e.encode(b as! Flyer, forKey:.flyer)},
+    {(e, b) in try e.encode(b as! Walker, forKey:.walker)}
+  ]
+  
+  static var factories:[BeastDec] = [
+    {(d) in try d.decode(DumbBeast.self, forKey:.dumbBeast)},
+    {(d) in try d.decode(Flyer.self, forKey:.flyer)},
+    {(d) in try d.decode(Walker.self, forKey:.walker)}
+  ]
 
   init(typeCode:Int, refTo:BaseBeast) {
     self.typeCode = typeCode
@@ -46,20 +90,13 @@ struct CodableRef : Codable {
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.typeCode = try container.decode(Int.self, forKey:.typeCode)
-    self.refTo = try CodableRef.decDumb(container) //try container.decode(DumbBeast.self, forKey:.dumbBeast)
+    self.refTo = try CodableRef.factories[self.typeCode](container)
   }
   
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(self.typeCode, forKey:.typeCode)
-    try CodableRef.encDumb(&container, refTo)
-    //var container = encoder.unkeyedContainer()
-    // encode a DumbBeast
-    ///try container.encode(self.typeCode)
-    
-    // the encode method is generic on a Codable type so reports an   error: CodableHierarchies.playground:50:13: error: ambiguous reference to member 'encode(_:forKey:)'
-    // if we attempt to just encode the parent types
-    // try container.encode(self.refTo, forKey:.dumbBeast)
+    try CodableRef.encoders[self.typeCode](&container, refTo)
   }
 }
 
@@ -75,11 +112,11 @@ struct Zoo : Codable {
 }
 
 let startZoo = Zoo(creatures: [
-  DumbBeast(name:"Rock")/*,
+  DumbBeast(name:"Rock"),
   Flyer(name:"Kookaburra", maxAltitude:5000),
   Walker(name:"Snake", legs:0),
   Walker(name:"Doggie", legs:4),
-  Walker(name:"Geek", legs:2, hasTail:false)*/
+  Walker(name:"Geek", legs:2, hasTail:false)
   ])
 
 
