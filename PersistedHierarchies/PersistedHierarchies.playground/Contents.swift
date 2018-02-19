@@ -1,6 +1,9 @@
-// Initial Playground - a hierarchy
+//: PersistedHierarchies - use class hierarchy which is not trivially Codable
+//: See the Codable.Hierarchies folder for an explanation and an alternative
+//: **Assume you have to use inheritance**
 
 import Cocoa
+
 
 class BaseBeast {
   let name: String
