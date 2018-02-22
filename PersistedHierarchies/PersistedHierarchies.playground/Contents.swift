@@ -48,7 +48,6 @@ class EncoderUsing<T:EncoderSupplier>: HierEncoder {
     }
     
     func encode(to encoder:Encoder) {
-      print("calling forwarder")
       forwarder(encoder)
     }
   }
@@ -78,14 +77,12 @@ class EncoderUsing<T:EncoderSupplier>: HierEncoder {
   func pushContext()
   {
     if container != nil {
-      print("PUSHING")
       containerStack.append(container!)  // new container for each start, typically a chain of them
       container = container?.nestedUnkeyedContainer()
     }
     else {
       container = realEncoder?.unkeyedContainer()
     }
-    //("Got a container \(container!)")
   }
   
   func popContext()
@@ -107,19 +104,16 @@ class EncoderUsing<T:EncoderSupplier>: HierEncoder {
 // default implementations so all collections of HierCodable can just be written
 extension HierEncoder {
   func write(_ typedObject:HierCodable) {
+    write(typedObject.typeKey())  // for decoding, code precedes nested context
     pushContext()
-    print("writing a HierCodable")
-    write(typedObject.typeKey())
     typedObject.encode(to: self)
     popContext()
   }
   func write(_ typedObjects:[HierCodable]) {
-    // nested collections should start a new container
-    print("writing [HierCodable]")
+    // nested collections start a new container
     pushContext()
-    typedObjects.forEach {  // same as $0.write()
-      write($0.typeKey())
-      $0.encode(to: self)
+    typedObjects.forEach {
+      write($0)
     }
     popContext()
   }
@@ -220,11 +214,8 @@ struct Zoo : HierCodable {
   }
   func typeKey() -> String { return Zoo.typeCode }
   func encode(to:HierEncoder) {
-    // write zoo typecode here????????
-    print("Inside zoo.encode")
     to.write(typeKey())
     to.write(creatures)
-    print("at end of zoo.encode")
   }
 }
 
@@ -232,10 +223,10 @@ struct Zoo : HierCodable {
 //: ---- Demo of encoding and decoding working ----
 let startZoo = Zoo(creatures: [
   Flyer(name:"Kookaburra", maxAltitude:5000),
-  BaseBeast(name:"Rock") /*,
+  BaseBeast(name:"Rock") ,
   Walker(name:"Snake", legs:0),
   Walker(name:"Doggie", legs:4),
-  Walker(name:"Geek", legs:2, hasTail:false) */
+  Walker(name:"Geek", legs:2, hasTail:false)
   ])
 
 startZoo.dump()
