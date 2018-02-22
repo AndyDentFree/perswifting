@@ -1,5 +1,6 @@
 import Foundation
 
+// TODO expand signatures to all the native types as per UnkeyedEncodingContainer
 public protocol HierEncoder {
   func write(_:String)
   func write(_:Int)
@@ -12,7 +13,7 @@ public protocol HierEncoder {
 
 public protocol HierCodable {
   func typeKey() -> String
-  func encode(to:HierEncoder)
+  func encode(to:HierEncoder)  // writes out the members of the type
 }
 
 // Generic reusable stuff you just need once
@@ -20,7 +21,11 @@ public protocol HierDecoder {
   func read() -> String
   func read() -> Int
   func read() -> Bool
-  func read<T>() -> [T]
+  func readObject() -> HierCodable?
+  func readArray() -> [HierCodable]
+  func pushContext()
+  func contextCount() -> Int?
+  func popContext()
 }
 
 
@@ -42,9 +47,42 @@ extension HierEncoder {
   }
 }
 
+extension HierDecoder {
+  // generic approach - we precede a container context with a typecode
+  public func readObject() -> HierCodable? {
+    var ret: HierCodable? = nil
+    if let key:String = read() {
+      pushContext()
+      if let factory = HierCodableFactories.factory(key:key) {
+        ret = try? factory(self)
+      }
+      popContext()
+    }
+    return ret
+  }
+  
+  // invoked when we know we have a container of eg array items
+  // T is probably a base class for a heterogeneous array
+  public func readArray() -> [HierCodable]  {
+    // nested collections start a new container
+    pushContext()
+    var ret = [HierCodable]()
+    if let numToDecode = contextCount() {
+      print("reading \(numToDecode) objects")
+      for _ in 1...numToDecode/2  { // typecode and nested container for each
+        if let obj = readObject() {
+          ret.append(obj)
+        }
+      }
+    }
+    popContext()
+    return ret
+  }
+}
 
 
-public typealias DecoderFactory = (inout HierDecoder) throws -> HierCodable
+
+public typealias DecoderFactory = (HierDecoder) throws -> HierCodable
 
 // one point to register and maintain list of factories
 public class HierCodableFactories {
@@ -54,5 +92,7 @@ public class HierCodableFactories {
     factories[key] = factory
     return key
   }
-  
+  public static func factory(key:String) -> DecoderFactory? {
+    return factories[key]
+  }
 }

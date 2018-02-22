@@ -16,7 +16,9 @@ class BaseBeast : HierCodable {
   
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"BB") {
-    (from) in return BaseBeast(name:from.read())
+    (from) in
+    print("in BaseBeast factory")
+    return BaseBeast(name:from.read())
   }
   func typeKey() -> String { return BaseBeast.typeCode }
   func encode(to:HierEncoder) {
@@ -34,7 +36,9 @@ class Flyer : BaseBeast {
 
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"F") {
-    (from) in return Flyer(name:from.read(), maxAltitude:from.read())
+    (from) in
+      print("in Flyer factory")
+      return Flyer(name:from.read(), maxAltitude:from.read())
   }
   override func typeKey() -> String { return Flyer.typeCode }
   override func encode(to:HierEncoder) {
@@ -61,7 +65,9 @@ class Walker : BaseBeast {
 
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"W") {
-    (from) in return Walker(name:from.read(), legs:from.read(), hasTail:from.read())
+    (from) in
+    print("in Walker factory")
+    return Walker(name:from.read(), legs:from.read(), hasTail:from.read())
   }
   override func typeKey() -> String { return Walker.typeCode }
   override func encode(to:HierEncoder) {
@@ -79,11 +85,12 @@ struct Zoo : HierCodable {
   
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"Zoo") {
-    (from) in return Zoo(creatures:from.read())
-  }
+    (from) in
+      print("in Zoo factory")
+      return Zoo(creatures:from.readArray() as! [BaseBeast])
+    }
   func typeKey() -> String { return Zoo.typeCode }
   func encode(to:HierEncoder) {
-    to.write(typeKey())
     to.write(creatures)
   }
 }
@@ -91,13 +98,14 @@ struct Zoo : HierCodable {
 
 //: ---- Demo of encoding and decoding working ----
 let startZoo = Zoo(creatures: [
-  Flyer(name:"Kookaburra", maxAltitude:5000),
-  BaseBeast(name:"Rock") ,
+  Flyer(name:"Kookaburra", maxAltitude:5000)/*,
+  //BaseBeast(name:"Rock"),
   Walker(name:"Snake", legs:0),
-  Walker(name:"Doggie", legs:4),
+  Walker(name:"Doggie", legs:4),*/,
   Walker(name:"Geek", legs:2, hasTail:false)
   ])
 
+print("Original Zoo")
 startZoo.dump()
 
 let encoder = JSONEncoder()
@@ -107,3 +115,9 @@ let encData = try hierEnc.encode(startZoo)
 print("\n---------\nencoded JSON\n")
 print(String(data:encData, encoding:.utf8)!)
 
+print("\n---------\nDecoding\n")
+let hierDecoder = try JSONDecoder().decode(DecoderUsing.self, from: encData)
+let decodedZoo = hierDecoder.topObject() as! Zoo
+
+print("Decoded zoo")
+decodedZoo.dump()

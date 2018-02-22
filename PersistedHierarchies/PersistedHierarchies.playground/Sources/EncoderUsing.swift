@@ -11,15 +11,17 @@ public protocol  EncoderSupplier {
 }
 extension JSONEncoder : EncoderSupplier {}  // once-off so we can be used with JSONEncoder
 
-public class EncoderUsing<T:EncoderSupplier>: HierEncoder {
+public class EncoderUsing<SupplierT:EncoderSupplier>: HierEncoder {
   let supplier:EncoderSupplier
   var realEncoder:Encoder?
   var containerStack = [UnkeyedEncodingContainer]()
   var container: UnkeyedEncodingContainer? = nil
   
   typealias EncoderForwarder = (Encoder) -> ()
+  
   // little helper we encode to pull the actual encoder back out for our use
   // we don't want to complicate things by making ourself Encodable
+  // This is necessary because you can't directly use JSONEncoder as an Encoder - it SUPPLIES one.
   struct EncoderExtractor : Encodable {
     let forwarder:EncoderForwarder
     
@@ -32,16 +34,16 @@ public class EncoderUsing<T:EncoderSupplier>: HierEncoder {
     }
   }
   
-  public init(_ supplier:T) {
+  public init(_ supplier:SupplierT) {
     self.supplier = supplier
   }
   
   // mimics the way Codable.encode works - start at the top
-  public func encode(_ encoding:HierCodable) throws -> Data {
+  public func encode(_ topObject:HierCodable) throws -> Data {
     let extractor = EncoderExtractor(forwarder:{(enc:Encoder) in
       self.realEncoder = enc  // the heart of the hack - grab this so we can use it in the tree of calls from encoding.encode
       self.pushContext()  // start with a top level in which we write all the objects
-      encoding.encode(to: self)  // with a context established now get the HierCodable to encode itself using us
+      self.write(topObject)
       self.finishedEncoding()
     })
     return try supplier.encode(extractor)  // now we have realEncoder
@@ -70,6 +72,7 @@ public class EncoderUsing<T:EncoderSupplier>: HierEncoder {
     container = containerStack.popLast()
   }
   
+  // TODO expand signatures to all the native types as per UnkeyedEncodingContainer
   public func write(_ value:String) {
     do { try container?.encode(value) } catch  { print("Write \(value) exception \(error)") }
   }
