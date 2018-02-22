@@ -100,7 +100,6 @@ let startZoo = Zoo(creatures: [
 
 startZoo.dump()
 
-print("---------\ntesting JSON\n")
 let encoder = JSONEncoder()
 encoder.outputFormatting = .prettyPrinted
 let hierEnc = EncoderUsing(encoder)
