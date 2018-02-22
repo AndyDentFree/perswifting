@@ -97,17 +97,21 @@ struct Zoo : HierCodable {
 
 
 //: ---- Demo of encoding and decoding working ----
+
+// Create Zoo
 let startZoo = Zoo(creatures: [
-  Flyer(name:"Kookaburra", maxAltitude:5000)/*,
+  Flyer(name:"Kookaburra", maxAltitude:5000),
   //BaseBeast(name:"Rock"),
   Walker(name:"Snake", legs:0),
-  Walker(name:"Doggie", legs:4),*/,
+  Walker(name:"Doggie", legs:4),
   Walker(name:"Geek", legs:2, hasTail:false)
   ])
 
 print("Original Zoo")
 startZoo.dump()
 
+//: ---- Using JSON Encoder
+/*
 let encoder = JSONEncoder()
 encoder.outputFormatting = .prettyPrinted
 let hierEnc = EncoderUsing(encoder)
@@ -121,3 +125,4 @@ let decodedZoo = hierDecoder.topObject() as! Zoo
 
 print("Decoded zoo")
 decodedZoo.dump()
+*/

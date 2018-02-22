@@ -51,7 +51,8 @@ extension HierDecoder {
   // generic approach - we precede a container context with a typecode
   public func readObject() -> HierCodable? {
     var ret: HierCodable? = nil
-    if let key:String = read() {
+    let key:String = read()
+    if key.count > 0 {
       pushContext()
       if let factory = HierCodableFactories.factory(key:key) {
         ret = try? factory(self)
