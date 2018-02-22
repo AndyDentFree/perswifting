@@ -40,6 +40,7 @@ extension HierEncoder {
   public func write(_ typedObjects:[HierCodable]) {
     // nested collections start a new container
     pushContext()
+    write(typedObjects.count)  // leading count in default format
     typedObjects.forEach {
       write($0)
     }

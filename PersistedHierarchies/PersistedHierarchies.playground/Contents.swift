@@ -110,6 +110,11 @@ let startZoo = Zoo(creatures: [
 print("Original Zoo")
 startZoo.dump()
 
+
+//: ---- Using a simple encoder
+let binData = SimpleBinaryEncoder().encode(startZoo)
+//let dump = binData.reduce(String()) {(str, b) in str + String(format: "%02x", b)}
+
 //: ---- Using JSON Encoder
 /*
 let encoder = JSONEncoder()
