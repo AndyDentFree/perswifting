@@ -2,7 +2,7 @@ import Foundation
 // thanks to https://stackoverflow.com/questions/43241845/how-can-i-convert-data-into-types-like-doubles-ints-and-strings-in-swift
 
 public extension String {
-  var data: Data { return Data(utf8) }
+  var data: Data { return Data(utf8) }  // just the raw bytes with no length
 }
 
 public extension Numeric {
@@ -31,10 +31,6 @@ public extension Data {
   }
   var string: String {
     return String(data: self, encoding: .utf8) ?? ""
-  }
-  
-  public func hexStringForByte(byte: UInt8) -> String {
-    return String(format: "%02x", UInt(byte))
   }
 }
 

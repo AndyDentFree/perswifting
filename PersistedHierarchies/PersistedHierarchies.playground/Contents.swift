@@ -106,13 +106,15 @@ let startZoo = Zoo(creatures: [
   Walker(name:"Doggie", legs:4),
   Walker(name:"Geek", legs:2, hasTail:false)
   ])
-
 print("Original Zoo")
 startZoo.dump()
 
-
 //: ---- Using a simple encoder
 let binData = SimpleBinaryEncoder().encode(startZoo)
+let dec = SimpleBinaryDecoder(decodeFrom:binData)
+let decodedZoo:Zoo? = dec.decode()
+decodedZoo?.dump()
+
 //let dump = binData.reduce(String()) {(str, b) in str + String(format: "%02x", b)}
 
 //: ---- Using JSON Encoder

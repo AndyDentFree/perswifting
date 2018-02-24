@@ -1,8 +1,8 @@
 import Foundation
 
 // first cut ignoring issues of performancecut
-// relies on DataHelper for encodingcut
-// relatively compact but unsafe as you have to read everytihng in the right order
+// relies on DataHelper for encoding
+// relatively compact but unsafe as you have to read everything in the right order
 public class SimpleBinaryEncoder : HierEncoder {
   var buffer:Data
   
@@ -19,7 +19,8 @@ public class SimpleBinaryEncoder : HierEncoder {
   
   public func write(_ value:String)  {
     let strData = value.data
-    buffer.append(strData.count.data)  // stash leading length for easy decoding
+    let leadingLen = UInt32(strData.count)
+    buffer.append(leadingLen.data)  // stash leading length for easy decoding
     buffer.append(strData)
   }
   
