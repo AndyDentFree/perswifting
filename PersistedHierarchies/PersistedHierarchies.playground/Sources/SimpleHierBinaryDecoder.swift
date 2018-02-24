@@ -1,17 +1,9 @@
 import Foundation
 
-// relies on DataHelper for decoding
 // relatively compact but unsafe as you have to read everything in the right order
 public class SimpleHierBinaryDecoder : HierDecoder {
   var buffer:BinaryDecoder
-  
-  /*var index:Data.Index
-  
-  public init(decodeFrom:Data, fromIndex:Data.Index = 0) {
-    buffer = decodeFrom
-    index = fromIndex
-  }
-   */
+
   public init(decodeFrom:Data) {
     buffer = BinaryDecoder(data:decodeFrom)
   }

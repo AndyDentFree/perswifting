@@ -114,3 +114,6 @@ let decodedZoo:Zoo? = try dec.decode()
 print("\nDecoded Zoo")
 decodedZoo?.dump()
 
+let textDump = SimpleDebuggingTextEncoder().encode(startZoo)
+print("\n\nSimpleDebuggingTextEncoder dump")
+print(textDump)

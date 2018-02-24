@@ -1,7 +1,6 @@
 import Foundation
 
-// first cut ignoring issues of performancecut
-// relies on DataHelper for encoding
+// first cut ignoring issues of performance
 // relatively compact but unsafe as you have to read everything in the right order
 public class SimpleHierBinaryEncoder : HierEncoder {
   var buffer:BinaryEncoder
