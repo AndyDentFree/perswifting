@@ -25,7 +25,7 @@ public class DecoderUsing: HierDecoder, Decodable {
   public required init(from: Decoder)  {
     self.realDecoder = from  // the heart of the hack - grab this so we can use it in the tree of calls from decode
     self.pushContext()  // start with a top level container, recurse down doing all the decoding
-    topDecoded = readObject()  // with a context established now
+    topDecoded = try? readObject()  // with a context established now
     self.finishedDecoding()
   }
   
@@ -60,15 +60,15 @@ public class DecoderUsing: HierDecoder, Decodable {
 
   // TODO expand signatures to all the native types as per UnkeyedDecodingContainer
   // TODO better error handling!
-  public func read() -> String {
+  public func read() throws -> String {
       return try! container!.decode(String.self)
   }
   
-  public func read() -> Int {
+  public func read() throws -> Int {
     return try! container!.decode(Int.self)
   }
   
-  public func read() -> Bool {
+  public func read() throws -> Bool {
     return try! container!.decode(Bool.self)
   }
 }

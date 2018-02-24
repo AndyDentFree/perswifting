@@ -18,13 +18,12 @@ public protocol HierCodable {
 
 // Generic reusable stuff you just need once
 public protocol HierDecoder {
-  func read() -> String
-  func read() -> Int
-  func read() -> Bool
-  func readObject() -> HierCodable?
-  func readArray() -> [HierCodable]
+  func read() throws -> String
+  func read() throws -> Int
+  func read() throws -> Bool
+  func readObject() throws -> HierCodable?
+  func readArray() throws -> [HierCodable]
   func pushContext()
-  func contextCount() -> Int?
   func popContext()
 }
 
@@ -50,13 +49,12 @@ extension HierEncoder {
 
 extension HierDecoder {
   // generic approach - we precede a container context with a typecode
-  public func readObject() -> HierCodable? {
+  public func readObject() throws -> HierCodable? {
     var ret: HierCodable? = nil
-    let key:String = read()
-    if key.count > 0 {
+    if let key:String = try? read() {
       pushContext()
       if let factory = HierCodableFactories.factory(key:key) {
-        ret = try? factory(self)
+        ret = try factory(self)
       }
       popContext()
     }
@@ -65,15 +63,14 @@ extension HierDecoder {
   
   // invoked when we know we have a container of eg array items
   // T is probably a base class for a heterogeneous array
-  public func readArray() -> [HierCodable]  {
+  public func readArray() throws -> [HierCodable]  {
     // nested collections start a new container
     pushContext()
     var ret = [HierCodable]()
-    if let numToDecode = contextCount() {
-      print("reading \(numToDecode) objects")
-      for _ in 1...numToDecode/2  { // typecode and nested container for each
-        if let obj = readObject() {
-          ret.append(obj)
+    if let numToDecode:Int = try? read() {  // match default write which preceds with length
+      for _ in 1...numToDecode  { // typecode and nested container for each
+        if let obj = try? readObject() {
+          ret.append(obj!)
         }
       }
     }
@@ -84,7 +81,7 @@ extension HierDecoder {
 
 
 
-public typealias DecoderFactory = (HierDecoder) throws -> HierCodable
+public typealias DecoderFactory = (HierDecoder) throws -> HierCodable?
 
 // one point to register and maintain list of factories
 public class HierCodableFactories {

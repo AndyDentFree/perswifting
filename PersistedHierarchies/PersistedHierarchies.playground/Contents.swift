@@ -17,8 +17,7 @@ class BaseBeast : HierCodable {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"BB") {
     (from) in
-    print("in BaseBeast factory")
-    return BaseBeast(name:from.read())
+    return try? BaseBeast(name:from.read())
   }
   func typeKey() -> String { return BaseBeast.typeCode }
   func encode(to:HierEncoder) {
@@ -37,8 +36,7 @@ class Flyer : BaseBeast {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"F") {
     (from) in
-      print("in Flyer factory")
-      return Flyer(name:from.read(), maxAltitude:from.read())
+      return try? Flyer(name:from.read(), maxAltitude:from.read())
   }
   override func typeKey() -> String { return Flyer.typeCode }
   override func encode(to:HierEncoder) {
@@ -66,8 +64,7 @@ class Walker : BaseBeast {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"W") {
     (from) in
-    print("in Walker factory")
-    return Walker(name:from.read(), legs:from.read(), hasTail:from.read())
+    return try? Walker(name:from.read(), legs:from.read(), hasTail:from.read())
   }
   override func typeKey() -> String { return Walker.typeCode }
   override func encode(to:HierEncoder) {
@@ -86,8 +83,8 @@ struct Zoo : HierCodable {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"Zoo") {
     (from) in
-      print("in Zoo factory")
-      return Zoo(creatures:from.readArray() as! [BaseBeast])
+      let creaturesDecoded = (try? from.readArray()) ?? [HierCodable]()
+      return Zoo(creatures:creaturesDecoded as! [BaseBeast])
     }
   func typeKey() -> String { return Zoo.typeCode }
   func encode(to:HierEncoder) {
@@ -101,7 +98,7 @@ struct Zoo : HierCodable {
 // Create Zoo
 let startZoo = Zoo(creatures: [
   Flyer(name:"Kookaburra", maxAltitude:5000),
-  //BaseBeast(name:"Rock"),
+  BaseBeast(name:"Rock"),
   Walker(name:"Snake", legs:0),
   Walker(name:"Doggie", legs:4),
   Walker(name:"Geek", legs:2, hasTail:false)
@@ -110,26 +107,10 @@ print("Original Zoo")
 startZoo.dump()
 
 //: ---- Using a simple encoder
-let binData = SimpleBinaryEncoder().encode(startZoo)
-let dec = SimpleBinaryDecoder(decodeFrom:binData)
-let decodedZoo:Zoo? = dec.decode()
+let binData = SimpleHierBinaryEncoder().encode(startZoo)
+let dec = SimpleHierBinaryDecoder(decodeFrom:binData)
+let decodedZoo:Zoo? = try dec.decode()
+
+print("\nDecoded Zoo")
 decodedZoo?.dump()
 
-//let dump = binData.reduce(String()) {(str, b) in str + String(format: "%02x", b)}
-
-//: ---- Using JSON Encoder
-/*
-let encoder = JSONEncoder()
-encoder.outputFormatting = .prettyPrinted
-let hierEnc = EncoderUsing(encoder)
-let encData = try hierEnc.encode(startZoo)
-print("\n---------\nencoded JSON\n")
-print(String(data:encData, encoding:.utf8)!)
-
-print("\n---------\nDecoding\n")
-let hierDecoder = try JSONDecoder().decode(DecoderUsing.self, from: encData)
-let decodedZoo = hierDecoder.topObject() as! Zoo
-
-print("Decoded zoo")
-decodedZoo.dump()
-*/
