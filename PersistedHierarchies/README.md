@@ -14,6 +14,49 @@ This just helps with debugging so you can get a dump of what's been persisted, i
 
 It indents objects and arrays and brackets arrays.
 
+### Sample Run
+
+```
+Original Zoo
+Kookaburra  Flies up to 5000
+Rock Sits there looking stupid
+Snake Wriggles on its belly
+Doggie Runs on 4 legs waggling its tail
+Geek Runs on 2 legs 
+
+Decoded Zoo
+Kookaburra  Flies up to 5000
+Rock Sits there looking stupid
+Snake Wriggles on its belly
+Doggie Runs on 4 legs waggling its tail
+Geek Runs on 2 legs 
+
+
+SimpleDebuggingTextEncoder dump
+
+"Zoo":String
+  [
+    5:Int
+    "F":String
+      "Kookaburra":String
+      5000:Int
+    "BB":String
+      "Rock":String
+    "W":String
+      "Snake":String
+      0:Int
+      true:Bool
+    "W":String
+      "Doggie":String
+      4:Int
+      true:Bool
+    "W":String
+      "Geek":String
+      2:Int
+      false:Bool
+  ]
+```
+
 ## JSON On Hold
 
 Putting it to one side for a bit due to time pressures.
