@@ -63,14 +63,18 @@ SimpleDebuggingTextEncoder dump
 ## RicherPersistedHierarchies
 To keep the implementation code simpler, rather than enhancing the base playground, this copy was extended when I needed to cope with nesting and optionals. If you're intersted, you can open the package contents and compare `HierCodable.swift` from each.
 
-### Owned Non-native Optionals
+### Owned Optionals
 
+Optionals have to have a base type but also need flagging. I chose to use a leading UInt8 to indicate the presence of an optional, so they take up a tiny bit more space. 
 
-Optionals have to have a base type which 
+The method used to flag optional primitives is left up to the individual encoder, see `BinaryEncoder.NONE_OPTIONAL`
+
+For optional objects, we already have an external leading typecode string. So, up at the level of `SimpleHierBinaryEncoder` we just store an empty string as the typecode. This works for nested, **owned** objects - see the `Walker` class's `pet` in `RicherPersistedHierarchies`.
 
 ### Nested References
+Nested references to a previous object offer a richer design space, depending on if you need to support forward references or only refer to decoded objects.
 
-
+Note _offer a richer design space_ implies there's a lot more scope for arguing and subtle bugs!
 
 ## JSON On Hold
 The JSON experiment was an attempt to reuse the existing JSON encoder/decoders.

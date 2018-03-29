@@ -38,7 +38,7 @@ public class SimpleDebuggingTextEncoder : HierEncoder {
   
   public func write<T>(_ value:T?)  {
     if value == nil {
-      appendStr("missing optional:\(T.self)")
+      appendStr("nil optional:\(T.self)")
     } else {
       appendStr("\(value!):\(T.self)")
     }
