@@ -1,5 +1,7 @@
 # PersistedHierarchies
-This demo is a contrast to CodableHierarchies where it insists on retaining class inheritance, so uses its own simple coding scheme instead of Codable.
+This demo is a contrast to CodableHierarchies. The primary goal is retaining class inheritance, so uses its own simple coding scheme instead of Codable.
+
+See the RicherPersistedHierarchies explanation below for more complex scenarios.
 
 ## SimpleHierBinaryEncoder and Decoder
 
@@ -57,7 +59,21 @@ SimpleDebuggingTextEncoder dump
   ]
 ```
 
+
+## RicherPersistedHierarchies
+To keep the implementation code simpler, rather than enhancing the base playground, this copy was extended when I needed to cope with nesting and optionals. If you're intersted, you can open the package contents and compare `HierCodable.swift` from each.
+
+### Owned Non-native Optionals
+
+
+Optionals have to have a base type which 
+
+### Nested References
+
+
+
 ## JSON On Hold
+The JSON experiment was an attempt to reuse the existing JSON encoder/decoders.
 
 Putting it to one side for a bit due to time pressures.
 
