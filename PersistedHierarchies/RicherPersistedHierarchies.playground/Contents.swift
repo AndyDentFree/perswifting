@@ -3,7 +3,7 @@
 //: **Assume you have to use inheritance** and want to put those types into a heterogenous array of the base type
 //: **Note** for flexibility in registration, this string keys for factory lookup rather than integers
 //: there are tricks we could use to directly derive a Hashable from the type but would not be safely persistent
-//: Extends the example and support clases in PersistedHierarchies to handle optionals and references.
+//: Extends the example and support clases in PersistedHierarchies to handle optionals and nested, OWNED objects.
 
 import Foundation
 
