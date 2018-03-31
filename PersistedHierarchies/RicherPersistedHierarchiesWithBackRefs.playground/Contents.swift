@@ -120,29 +120,31 @@ class Walker : BaseBeast {
 
 class Human : Walker {
   let phones:[Phone]
-  
-  init(name:String, phones:[Phone]=[]) {
+  let boss:Human?
+  init(name:String, phones:[Phone]=[], boss:Human?=nil) {
     self.phones = phones
+    self.boss = boss
     super.init(name:name, legs:2, hasTail: false)
   }
   override func move() -> String {
     let maybePhones = phones.count > 0 ? "phones: " + phones.map {$0.describe()}.joined(separator:", ") : "has no phone"
-    return "\(name) \(maybePhones)"
+    let maybeBoss = boss == nil ? "" : "trying to contact boss \(boss!.name)"
+    return "\(name) \(maybeBoss) \(maybePhones)"
   }
   
 
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"H") {
     (from) in
-    return try Human(name:from.read(), phones:from.readArray() as! [Phone])
+    return try Human(name:from.read(), phones:from.readArray() as! [Phone], boss:from.readOptionalObject() as? Human)
   }
   override func typeKey() -> String { return Human.typeCode }
   override func encode(to:HierEncoder) {
-    // SKIPPED super.encode(to:to)  // Walker super also writes members we hardcode, so we just write the member we care about
+    // SKIPPED super.encode(to:to)  // Walker super also writes members we hardcode, so we just write the members we care about
     to.write(name)
     to.write(phones)
+    to.write(boss)
   }
-
 }
 
 struct Zoo : HierCodable {
@@ -167,13 +169,14 @@ struct Zoo : HierCodable {
 //: ---- Demo of encoding and decoding working ----
 
 // Create Zoo
+let phb = Human(name:"PHB")
 let startZoo = Zoo(creatures: [
   Flyer(name:"Kookaburra", maxAltitude:5000),
   BaseBeast(name:"Rock"),
   Walker(name:"Snake", legs:0),
   Walker(name:"Doggie", legs:4),
-  Human(name:"Geek", phones:[Phone(number:555111222, os:.Android), Phone(number:666)]),
-  Human(name:"PHB")
+  phb,
+  Human(name:"Geek", phones:[Phone(number:555111222, os:.Android), Phone(number:666)], boss:phb)
   ])
 print("Original Zoo")
 startZoo.dump()

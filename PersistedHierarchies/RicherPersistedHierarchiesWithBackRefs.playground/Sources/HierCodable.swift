@@ -86,8 +86,10 @@ extension HierDecoder {
   public func readOptionalObject() throws -> HierCodable?  {
     if let key:String = try? read() {
       if key.count == 0 {
+        // for debug print ("readOptionalObject got blank key == None")
         return nil  // validly detected a None optional indicated by blank key
       }
+      // for debug print ("readOptionalObject read key \(key)")
       pushContext()
       if let factory = HierCodableFactories.factory(key:key) {
         let ret: HierCodable = try factory(self)
