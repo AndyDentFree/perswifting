@@ -30,17 +30,17 @@ public protocol HierDecoder {
 
 // default implementations so all collections of HierCodable can just be written
 extension HierEncoder {
-  public func write(_ typedObject:HierCodable) {
-    write(typedObject.typeKey())  // for decoding, code precedes nested context
+  public func write(_ typedThing:HierCodable) {
+    write(typedThing.typeKey())  // for decoding, code precedes nested context
     pushContext()
-    typedObject.encode(to: self)
+    typedThing.encode(to: self)
     popContext()
   }
-  public func write(_ typedObjects:[HierCodable]) {
+  public func write(_ typedThings:[HierCodable]) {
     // nested collections start a new container
     pushContext()
-    write(typedObjects.count)  // leading count in default format
-    typedObjects.forEach {
+    write(typedThings.count)  // leading count in default format
+    typedThings.forEach {
       write($0)
     }
     popContext()
@@ -68,9 +68,15 @@ extension HierDecoder {
     pushContext()
     var ret = [HierCodable]()
     if let numToDecode:Int = try? read() {  // match default write which preceds with length
-      for _ in 1...numToDecode  { // typecode and nested container for each
-        if let obj = try? readObject() {
-          ret.append(obj!)
+      if numToDecode == 0 {
+        // print("Empty array but that's OK")
+        // Note for some reason the loop below caused an error - cannot create a range
+      }
+      else {
+        for _ in 1...numToDecode  { // typecode and nested container for each
+          if let obj = try? readObject() {
+            ret.append(obj!)
+          }
         }
       }
     }
