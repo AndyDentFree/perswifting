@@ -42,11 +42,6 @@ struct Phone : HierCodable {
     to.write(number)
     to.write(os.rawValue)
   }
-
-  //MARK HierCodable optional for stuff with target refs
-  public func persistsReference(from:HierCodable) { }
-  public func hasPersistentReference() -> Bool
-  { return false  }
 }
 
 class BaseBeast : HierCodable {
@@ -181,10 +176,6 @@ struct Zoo : HierCodable {
   func encode(to:HierEncoder) {
     to.write(creatures)
   }
-  //MARK HierCodable optional for stuff with target refs
-  public func persistsReference(from:HierCodable) { }
-  public func hasPersistentReference() -> Bool
-  { return false  }
 }
 
 

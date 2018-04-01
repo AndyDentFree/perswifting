@@ -43,6 +43,13 @@ public protocol HierDecoder {
   func getRef(key:Int) -> HierCodable
 }
 
+extension HierCodable {
+  // HierCodable optional for stuff without target refs
+  public func persistsReference(from:HierCodable) { }
+  public func hasPersistentReference() -> Bool
+  { return false  }
+}
+
 // default implementations so all collections of HierCodable can just be written
 extension HierEncoder {
   
