@@ -42,6 +42,11 @@ struct Phone : HierCodable {
     to.write(number)
     to.write(os.rawValue)
   }
+
+  //MARK HierCodable optional for stuff with target refs
+  public func persistsReference(from:HierCodable) { }
+  public func hasPersistentReference() -> Bool
+  { return false  }
 }
 
 class BaseBeast : HierCodable {
@@ -57,6 +62,18 @@ class BaseBeast : HierCodable {
   func typeKey() -> String { return BaseBeast.typeCode }
   func encode(to:HierEncoder) {
     to.write(name)
+  }
+
+  //MARK HierCodable optional for stuff with target refs
+  private var _hasPersistentReference = false
+  public func persistsReference(from:HierCodable) {
+    // ignores how many times called
+    _hasPersistentReference = true
+  }
+  
+  public func hasPersistentReference() -> Bool
+  {
+    return _hasPersistentReference
   }
 }
 
@@ -125,6 +142,7 @@ class Human : Walker {
     self.phones = phones
     self.boss = boss
     super.init(name:name, legs:2, hasTail: false)
+    boss?.persistsReference(from:self)
   }
   override func move() -> String {
     let maybePhones = phones.count > 0 ? "phones: " + phones.map {$0.describe()}.joined(separator:", ") : "has no phone"
@@ -136,14 +154,14 @@ class Human : Walker {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"H") {
     (from) in
-    return try Human(name:from.read(), phones:from.readArray() as! [Phone], boss:from.readOptionalObject() as? Human)
+    return try Human(name:from.read(), phones:from.readArray() as! [Phone], boss:from.readRef() as? Human)
   }
   override func typeKey() -> String { return Human.typeCode }
   override func encode(to:HierEncoder) {
     // SKIPPED super.encode(to:to)  // Walker super also writes members we hardcode, so we just write the members we care about
     to.write(name)
     to.write(phones)
-    to.write(boss)
+    to.writeRef(boss)
   }
 }
 
@@ -163,6 +181,10 @@ struct Zoo : HierCodable {
   func encode(to:HierEncoder) {
     to.write(creatures)
   }
+  //MARK HierCodable optional for stuff with target refs
+  public func persistsReference(from:HierCodable) { }
+  public func hasPersistentReference() -> Bool
+  { return false  }
 }
 
 
@@ -181,6 +203,7 @@ let startZoo = Zoo(creatures: [
 print("Original Zoo")
 startZoo.dump()
 
+
 //: ---- Using a simple encoder
 print("\nEncoding Zoo to binary")
 let binData = SimpleHierBinaryEncoder().encode(startZoo)
@@ -191,6 +214,7 @@ let decodedZoo:Zoo? = try dec.decode()
 
 print("\nDecoded Zoo")
 decodedZoo?.dump()
+
 
 let textDump = SimpleDebuggingTextEncoder().encode(startZoo)
 print("\n\nSimpleDebuggingTextEncoder dump")

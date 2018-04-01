@@ -3,7 +3,8 @@ import Foundation
 // relatively compact but unsafe as you have to read everything in the right order
 public class SimpleHierBinaryDecoder : HierDecoder {
   var buffer:BinaryDecoder
-
+  private var refTargets = Dictionary<Int, HierCodable>()
+  
   public init(decodeFrom:Data) {
     buffer = BinaryDecoder(data:decodeFrom)
   }
@@ -62,4 +63,14 @@ public class SimpleHierBinaryDecoder : HierDecoder {
       }
     }
   }
+
+  public func saveRef(key:Int, target:HierCodable)
+  {
+    refTargets[key] = target
+  }
+  
+  public func getRef(key:Int) -> HierCodable {
+    return refTargets[key]!
+  }
+
 }

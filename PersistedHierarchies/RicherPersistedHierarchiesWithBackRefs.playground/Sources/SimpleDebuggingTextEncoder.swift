@@ -69,6 +69,15 @@ public class SimpleDebuggingTextEncoder : HierEncoder {
     appendStr("]")
   }
 
+  public func writeRef(_ typedObject:HierCodable?) {
+    if typedObject == nil {
+      appendStr("ref to nil optional HierCodable")
+    }
+    else {
+      appendStr("ref to an \(typedObject!.typeKey())")
+    }
+  }
+
   public func pushContext() {
     updateIndent(by:1)
   }

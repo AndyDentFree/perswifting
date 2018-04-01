@@ -113,20 +113,93 @@ We can't rely on the encoding of the _later_ referrer because the target won't h
 
 It turns out, in thinking through the following alternatives, the balancing is between storage overhead and flexibility. In particular, will there be many target objects shared as a proportion of the total object graph? This variation could later be abstracted to allow a choice of different encoding strategies.
 
-Alternative designs:
+##### Alternative designs for storage:
 
-1. Explicitly label target objects with an extra call at the time they are first saved - awkward but efficient if there is only a small number of targets. Easy to get wrong but the decode logic can catch that - when you decode something that expects to find a target and the target is missing, it will throw.
+1. Explicitly label target objects with an extra call at the time they are first saved - awkward but efficient if there is only a small number of targets. Easy to get wrong but the decode logic can catch that - when you decode something that expects to find a target and the target is missing, it will throw. However, that safety net only works for backrefs.
 2. As part of the `HierCodable` protocol, add a _referrers_ object to each. That manages the relationship but adds overhead in storage if we persist an optional reference to the _referrers_ each time..
-3. Use a _referrers_ approach in memory but anticipate only a small number of targets. Store a leading typecode that triggers decoding the next object as a target. (Formally, this is a Decorator pattern.)
+3. Use a _referrers_ approach in memory but anticipate only a small number of targets. Store a special typecode plus identifier that triggers decoding the next object as a target. (Formally, this is a Decorator pattern.)
 
-Decision - use 3. for now.
+Decision - use 3. as the least invasive.
+
+##### Design considerations for lookup keys:
+From a referrer viewpoint, lookup keys need to be available at the time it is encoded. They can be lazy and not generated before that point. In writing the alternatives below I had the insight that there doesn't need to be anything meaningful about these keys - they can be an arbitrary key generated when needed, because they are stored in both the target persistence and the referrer persistence.
+
+Alternatives being considered:
+
+1. Combine the type string with an ordinal number to provide a unique key. 
+   - provides additional debugging info
+   - increases the oersistence storage size
+   - can use an ordinal number for that type alone, rather than a single global number
+2. Just use an ordinal number, not needing typing information.
+3. Store a completely arbitrary value - the object pointer.
+   - unlike 1. and 2.  it can be generated from the target instance without needing extra storage
+   - loses meaning after restore - has to be used in a lookup table still at that point whilst decoding
+   - note this may seem for non-objects, to be non-viable, but remember whilst we use HierCodable for structs and enums, the context of storing references is, by definition, **only to reference types**
+
+Decision - use 3 as simplest and least contentious
+
+#### Backward References - Implementation
+There are three things you need to take into account. These are done explicitly for performance reasons rather than having logic checking under the hood. (We could have an implementation which hid the 2nd and 3rd steps).
+
+1. `HierCodableRefTarget` is an extra protocol introducing the function `persistsReference` which you should use prior to encoding, eg: in an Init
+2. When you write an object you don't own, use `writeRef`
+3. On reading back such an object, use `readRef`
+4. To implement a target of a reference, you also have to implement `hasPersistentReference` from `HierCodableRefTarget` 
+
+eg:
+
+
+    class Human : HierCodableRefTarget {
+      let name:String
+      let boss:Human?
+      init(name:String, boss:Human?=nil) {
+        self.name = name
+        self.boss = boss
+        boss?.usedByRef(from:self)
+      }
+      
+      private static let typeCode = HierCodableFactories.Register(key:"H") {
+        (from) in
+        return try Human(name:from.read(),  boss:from.readRef() as? Human)
+      }
+      
+      override func typeKey() -> String { return Human.typeCode }
+      override func encode(to:HierEncoder) {
+        to.write(name)
+        to.writeRef(boss)
+      }
+  
+      //MARK HierCodableRefTarget
+      private var _hasPersistentReference = false
+      func persistsReference(from:HierCodable)
+      {
+        // ignores how many times called
+        _hasPersistentReference = true
+      }
+  
+      func hasPersistentReference() -> Bool
+      {
+        return _hasPersistentReference
+      }
+    }
+
 
 #### Forward references
 
 This is not too far from the _forward references_ of a general graph - it needs to store the same information but uses it in a _cleanup pass_ after all objects are created.
 
-However, I don't need them for now so won't include in this version of the playground.
+However, I don't need them for now so won't include in this version of the playground. Although, as I went through implementing the above ideas, I got very close.
+
+Now that both Swift and C++ have lambdas, can have a dictionary of those to resolve forward references rather than a more closely-coupled fixup pass (just a dictionary of lambdas to process with their keys).
 	
+	
+## More Design Considerations
+
+Other things that may influence how you think about or implement coding references, in no particular order.
+
+* Concurrency of use and decoding. Whilst in many cases you can safely assume decoding as an atomic activity for an object graph, say our object graph comes from a stream. If we start interacting with objects as they are decoded, especially in an editing environment, this may conflict with decoding later objects. This could be particularly awkward with forward references.
+* Saving again. For even a trivial document, the graph decoded into memory is likely to be saved again. This may impact some implementation details such as a shared dictionary - if it's keyed using something like an object address that will change on later decoding an object, does the dictionary get updated or discarded once you are finished decoding?
+
 
 ## JSON On Hold
 The JSON experiment was an attempt to reuse the existing JSON encoder/decoders.

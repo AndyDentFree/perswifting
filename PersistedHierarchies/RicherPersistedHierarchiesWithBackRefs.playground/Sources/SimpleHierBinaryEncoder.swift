@@ -1,5 +1,10 @@
 import Foundation
 
+func ptrToInt<T : AnyObject>(obj : T) -> Int {
+  return Int(bitPattern:UnsafeRawPointer(Unmanaged.passUnretained(obj).toOpaque()))
+}
+
+
 // first cut ignoring issues of performance
 // relatively compact but unsafe as you have to read everything in the right order
 public class SimpleHierBinaryEncoder : HierEncoder {
