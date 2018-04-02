@@ -14,3 +14,5 @@ See the `CodableHierarchies\README.md` for a detailed explanation of how polymor
 See the `PersistedHierarchies\README.md` for a detailed explanation of how this alternative works, using binary encoding and preserving a **class hierarchy.**
 
 Note that it uses a more robust method of registering factories using a string key, as a contrast to the very dangerous approach in `CodableHierarchies` where we save an index and rely on the programmer to get their factory array right with unique indexes for each type!
+
+There are multiple playgrounds in there exploring increasing features through to backward references.

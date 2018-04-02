@@ -1,7 +1,7 @@
 # PersistedHierarchies
-This demo is a contrast to CodableHierarchies. The primary goal is retaining class inheritance, so uses its own simple coding scheme instead of Codable.
+This demo is a contrast to `CodableHierarchies`. The primary goal is retaining class inheritance, so uses its own simple coding scheme instead of `Codable`.
 
-See the RicherPersistedHierarchies explanation below for more complex scenarios.
+See the `RicherPersistedHierarchies` explanation below for more complex scenarios.
 
 ## SimpleHierBinaryEncoder and Decoder
 
@@ -11,9 +11,9 @@ See the [article](https://www.mikeash.com/pyblog/friday-qa-2017-07-28-a-binary-c
 
 I grabbed the internals of his binary encoding and added a little bit of logic on top to use with the Hirarchical encoders.
 
-Note that the term's _class_ and _object_ are used because the main motivator for this work is the sub-classing relationship not being handled by Codable.
+Note that the terms _class_ and _object_ are used because the main motivator for this work is the sub-classing relationship not being handled by Codable.
 
-However, I also use the term _thing_ because nothing about this requires you be persisting _objects_ - it should work for enums and structs as well. The later examples with references get into using a struct just to prove this point.
+However, I also use the term _thing_ because nothing about this requires you be persisting _objects_ - it should work for enums and structs as well. The later examples with references show how a struct containing an enum works.
 
 ## SimpleDebuggingTextEncoder
 This just helps with debugging so you can get a dump of what's been persisted, in a kind of YAML nested format.
@@ -69,7 +69,7 @@ To keep the implementation code simpler, rather than enhancing the base playgrou
 
 ### Owned Optionals
 
-Optionals have to have a base type but also need flagging. I chose to use a leading UInt8 to indicate the presence of an optional, so they take up a tiny bit more space. 
+Optionals have to have a base type but also need flagging. I chose to use a leading `UInt8` to indicate the presence of an optional, so they take up a tiny bit more space. 
 
 The method used to flag optional primitives is left up to the individual encoder, see `BinaryEncoder.NONE_OPTIONAL`
 
@@ -79,12 +79,12 @@ For optional things, we already have an external leading typecode string. So, up
 
 Yet another variant, built on top of `RicherPersistedHierarchies` and adding some minor extension to provide backwards references.
 
-### Nested References
-Nested references to a previous thing offer a richer design space, depending on if you need to support forward references or only refer to decoded objects. 
+### References
+References to another thing offer a richer design space, depending on if you need to support forward references or only refer to decoded objects. 
 
 Note _offer a richer design space_ implies there's a lot more scope for arguing and subtle bugs!
 
-There are multiple competing forces here, it would be very nice to be able to strategise the entire thing, maybe with generics, but that is a level of abstraction for another day.
+There are multiple competing forces here, whilst there's probably room for more abstraction, this is enough to be usable.
 
 #### Backward References - Design Musings
 The concept of _forward references_ is a decoding issue - at the time of encoding, all objects in the graph are assumed to exist. If we create all _leaves_ in advance, then whatever complex graph stucture we create later will only be references to objects that have already been decoded. The annoying, and common, case is a mutual reference, so we need some way to go back and fix the first object to point to the second.
@@ -103,7 +103,7 @@ If we take that back to a pragmatic view of what can be persisted, we basically 
 1. A way to label the target object as it is persisted, so it it can be found after decoding.
 2. A fixup for decoding objects and following references.
 
-Driving this backwards, we don't have to think object-oriented. Remember that the decoder uses a typekey to lookup a factory function which then processes the next information in the stream. We can provide a different kind of factory to pull some magic reference lookup key out rather than decoding a nested object.
+Driving this backwards, we don't have to think object-oriented. Remember that the decoder uses a typekey to lookup a factory function which then processes the next information in the stream. We can provide a different kind of factory to pull some magic reference lookup key out rather than decoding a nested object. (The first version doesn't bother with that degree of abstraction, just using different typekeys.)
 
 Considering from the viewpoint of the _target object_,  somehow when we **encode** it we need it registered as a target, for consumption in either a dependent object decoding or cleanup pass.
 
@@ -128,7 +128,7 @@ Alternatives being considered:
 
 1. Combine the type string with an ordinal number to provide a unique key. 
    - provides additional debugging info
-   - increases the oersistence storage size
+   - increases the oersisted storage size
    - can use an ordinal number for that type alone, rather than a single global number
 2. Just use an ordinal number, not needing typing information.
 3. Store a completely arbitrary value - the object pointer.
@@ -139,17 +139,17 @@ Alternatives being considered:
 Decision - use 3 as simplest and least contentious
 
 #### Backward References - Implementation
-There are three things you need to take into account. These are done explicitly for performance reasons rather than having logic checking under the hood. (We could have an implementation which hid the 2nd and 3rd steps).
+There are three things you need to take into account. These are done explicitly for performance reasons rather than having logic checking under the hood. (We could have an implementation which hides the 2nd and 3rd steps).
 
-1. `HierCodableRefTarget` is an extra protocol introducing the function `persistsReference` which you should use prior to encoding, eg: in an Init
-2. When you write an object you don't own, use `writeRef`
-3. On reading back such an object, use `readRef`
+1. The function `persistsReference` call prior to encoding, eg: in an Init
+2. When you write an object you don't own, use `writeRef` - this is vital, to know we want a reference not owned copy.
+3. On reading back such an object, use `readRef` - could have skipped this and make `readOptionalObject` do the work, but I like the symmetry of the API.
 4. To implement a target of a reference, you also have to implement `hasPersistentReference` from `HierCodableRefTarget` 
 
 eg:
 
 
-    class Human : HierCodableRefTarget {
+    class Human : HierCodable {
       let name:String
       let boss:Human?
       init(name:String, boss:Human?=nil) {
@@ -169,7 +169,6 @@ eg:
         to.writeRef(boss)
       }
   
-      //MARK HierCodableRefTarget
       private var _hasPersistentReference = false
       func persistsReference(from:HierCodable)
       {
