@@ -206,8 +206,15 @@ let decodedZoo:Zoo? = try dec.decode()
 print("\nDecoded Zoo")
 decodedZoo?.dump()
 
-
 let textDump = SimpleDebuggingTextEncoder().encode(startZoo)
 print("\n\nSimpleDebuggingTextEncoder dump")
 print(textDump)
+
+// prove we can encode and decode again
+print("\n\nRepeating the Encode/Decode to show still works after retrieved")
+let bin2Data = SimpleHierBinaryEncoder().encode(decodedZoo!)
+let decodedZoo2:Zoo? = try SimpleHierBinaryDecoder(decodeFrom:bin2Data).decode()
+decodedZoo2?.dump()
+// prove the backref did correctly link objects
+(decodedZoo2?.creatures[4]  as! Human) === (decodedZoo2?.creatures[5] as! Human).boss
 
