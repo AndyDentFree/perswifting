@@ -19,6 +19,7 @@ public class BinaryEncoder {
 public extension BinaryEncoder {
   public static let HAS_OPTIONAL:UInt8 = 0xF
   static let NONE_OPTIONAL:UInt8 = 0
+  static let NONE_OPTIONAL_AS_LEN16:UInt16 = 0xFFFF
 
   func encode(_ value: Bool)  {
     let asNum:UInt8 = value ? 1 : 0
@@ -67,6 +68,15 @@ public extension BinaryEncoder {
     encode(len)
     data += Array(value.utf8) as [UInt8]
   }
+
+  /// hides the flag for missing optional inside the length word
+  func encode(_ value: String?) {
+    if value == nil {
+        appendBytes(of:BinaryEncoder.NONE_OPTIONAL_AS_LEN16)
+    } else {
+        encode(value!)
+    }
+  }
   
   func encode(_ value: Data) {
     let len:UInt32 = UInt32(value.count)
@@ -75,7 +85,7 @@ public extension BinaryEncoder {
   }
   
 }
-
+  
 /// Internal method for encoding raw data.
 private extension BinaryEncoder {
   /// Append the raw bytes of the parameter to the encoder's data. No byte-swapping

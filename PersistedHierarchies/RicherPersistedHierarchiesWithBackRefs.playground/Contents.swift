@@ -133,23 +133,26 @@ class Walker : BaseBeast {
 class Human : Walker {
   let phones:[Phone]
   let boss:Human?
-  init(name:String, phones:[Phone]=[], boss:Human?=nil) {
+  let note:String?
+    init(name:String, phones:[Phone]=[], boss:Human?=nil, note:String?=nil) {
     self.phones = phones
     self.boss = boss
+    self.note = note
     super.init(name:name, legs:2, hasTail: false)
     boss?.persistsReference(from:self)
   }
   override func move() -> String {
     let maybePhones = phones.count > 0 ? "phones: " + phones.map {$0.describe()}.joined(separator:", ") : "has no phone"
     let maybeBoss = boss == nil ? "" : "trying to contact boss \(boss!.name)"
-    return "\(name) \(maybeBoss) \(maybePhones)"
+    let maybeNote = note ?? ""
+    return "\(name) \(maybeBoss) \(maybePhones) \(maybeNote)"
   }
   
 
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"H") {
     (from) in
-    return try Human(name:from.dech(), phones:from.dechArray() as! [Phone], boss:from.dechRef() as? Human)
+    return try Human(name:from.dech(), phones:from.dechArray() as! [Phone], boss:from.dechRef() as? Human, note:from.dech())
   }
   override func typeKey() -> String { return Human.typeCode }
   override func encode(to:HierEncoder) {
@@ -157,6 +160,7 @@ class Human : Walker {
     to.ench(name)
     to.ench(phones)
     to.enchRef(boss)
+    to.ench(note)
   }
 }
 
@@ -189,7 +193,7 @@ let startZoo = Zoo(creatures: [
   Walker(name:"Snake", legs:0),
   Walker(name:"Doggie", legs:4),
   phb,
-  Human(name:"Geek", phones:[Phone(number:555111222, os:.Android), Phone(number:666)], boss:phb)
+  Human(name:"Geek", phones:[Phone(number:555111222, os:.Android), Phone(number:666)], boss:phb, note:"Will fail world domination")
   ])
 print("Original Zoo")
 startZoo.dump()

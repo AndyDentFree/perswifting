@@ -33,6 +33,10 @@ public class SimpleHierBinaryEncoder : HierEncoder {
     buffer.encode(value)
   }
   
+  public func ench(_ value:String?)  {
+    buffer.encode(value)
+  }
+  
   public func ench(_ value:UInt8)  {
     buffer.encode(value)
   }

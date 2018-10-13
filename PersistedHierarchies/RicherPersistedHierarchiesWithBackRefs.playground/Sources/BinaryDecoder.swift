@@ -113,14 +113,27 @@ public extension BinaryDecoder {
     let ret:Int = try decode()
     return ret
   }
-
-  func decode() throws -> String {
-    let len:UInt16 = try decode()
+  
+  private func decodeStringOfLen(_ len: UInt16) throws -> String {
     if len == 0 {  // OK, we use them as typecodes for optional objects
       return ""
     }
     let strData = try readData(byteCount:Int(len))
     return String(data:strData, encoding:.utf8) ?? ""
+  }
+
+  func decode() throws -> String {
+    let len:UInt16 = try decode()
+    return try decodeStringOfLen(len)
+  }
+  
+  /// bit of a hack use the leading length to indicate optional
+  func decode() throws -> String? {
+    let len:UInt16 = try decode()
+    if len == BinaryEncoder.NONE_OPTIONAL_AS_LEN16 {
+      return nil
+    }
+    return try decodeStringOfLen(len)
   }
   
   func decode() throws -> Data {

@@ -12,6 +12,7 @@ enum DecodeError : Error {
 // TODO expand signatures to all the native types as per UnkeyedEncodingContainer
 public protocol HierEncoder {
     func ench(_: String)
+    func ench(_: String?)
     func ench(_: Int)
     func ench(_: Int?)
     func ench(_: UInt8)
@@ -40,6 +41,7 @@ public protocol HierCodable {
 // Generic reusable stuff you just need once
 public protocol HierDecoder {
     func dech() throws -> String
+    func dech() throws -> String?
     func dech() throws -> Int
     func dech() throws -> Int?
     func dech() throws -> UInt8

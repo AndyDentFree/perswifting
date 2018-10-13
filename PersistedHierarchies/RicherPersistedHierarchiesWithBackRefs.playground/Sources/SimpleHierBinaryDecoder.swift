@@ -22,6 +22,10 @@ public class SimpleHierBinaryDecoder : HierDecoder {
     return try buffer.decode()
   }
 
+  public func dech() throws -> String? {
+    return try buffer.decode()
+  }
+
   public func dech() throws -> Int {
     return try buffer.decode()
   }
