@@ -35,12 +35,12 @@ struct Phone : HierCodable {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"ph") {
     (from) in
-    return try Phone(number:from.read(), os:osType(rawValue: from.read())!)
+    return try Phone(number:from.dech(), os:osType(rawValue: from.dech())!)
   }
   func typeKey() -> String { return Phone.typeCode }
   func encode(to:HierEncoder) {
-    to.write(number)
-    to.write(os.rawValue)
+    to.ench(number)
+    to.ench(os.rawValue)
   }
 }
 
@@ -52,11 +52,11 @@ class BaseBeast : HierCodable {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"BB") {
     (from) in
-    return try BaseBeast(name:from.read())
+    return try BaseBeast(name:from.dech())
   }
   func typeKey() -> String { return BaseBeast.typeCode }
   func encode(to:HierEncoder) {
-    to.write(name)
+    to.ench(name)
   }
 
   //MARK HierCodable optional for stuff with target refs
@@ -90,13 +90,13 @@ class Flyer : BaseBeast {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"F") {
     (from) in
-    return try Flyer(name:from.read(), maxAltitude:from.read(), airSpeed:from.read())
+    return try Flyer(name:from.dech(), maxAltitude:from.dech(), airSpeed:from.dech())
   }
   override func typeKey() -> String { return Flyer.typeCode }
   override func encode(to:HierEncoder) {
     super.encode(to:to)
-    to.write(maxAltitude)
-    to.write(airSpeed)
+    to.ench(maxAltitude)
+    to.ench(airSpeed)
   }
 }
 
@@ -120,13 +120,13 @@ class Walker : BaseBeast {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"W") {
     (from) in
-    return try Walker(name:from.read(), legs:from.read(), hasTail:from.read())
+    return try Walker(name:from.dech(), legs:from.dech(), hasTail:from.dech())
   }
   override func typeKey() -> String { return Walker.typeCode }
   override func encode(to:HierEncoder) {
     super.encode(to:to)
-    to.write(numLegs)
-    to.write(hasTail)
+    to.ench(numLegs)
+    to.ench(hasTail)
   }
 }
 
@@ -149,14 +149,14 @@ class Human : Walker {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"H") {
     (from) in
-    return try Human(name:from.read(), phones:from.readArray() as! [Phone], boss:from.readRef() as? Human)
+    return try Human(name:from.dech(), phones:from.dechArray() as! [Phone], boss:from.dechRef() as? Human)
   }
   override func typeKey() -> String { return Human.typeCode }
   override func encode(to:HierEncoder) {
-    // SKIPPED super.encode(to:to)  // Walker super also writes members we hardcode, so we just write the members we care about
-    to.write(name)
-    to.write(phones)
-    to.writeRef(boss)
+    // SKIPPED super.encode(to:to)  // Walker super also enchs members we hardcode, so we just ench the members we care about
+    to.ench(name)
+    to.ench(phones)
+    to.enchRef(boss)
   }
 }
 
@@ -169,12 +169,12 @@ struct Zoo : HierCodable {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"Zoo") {
     (from) in
-      let creaturesDecoded = (try? from.readArray()) ?? [HierCodable]()
+      let creaturesDecoded = (try? from.dechArray()) ?? [HierCodable]()
       return Zoo(creatures:creaturesDecoded as! [BaseBeast])
     }
   func typeKey() -> String { return Zoo.typeCode }
   func encode(to:HierEncoder) {
-    to.write(creatures)
+    to.ench(creatures)
   }
 }
 

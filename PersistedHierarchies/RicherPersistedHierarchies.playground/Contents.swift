@@ -17,11 +17,11 @@ class BaseBeast : HierCodable {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"BB") {
     (from) in
-    return try BaseBeast(name:from.read())
+    return try BaseBeast(name:from.dech())
   }
   func typeKey() -> String { return BaseBeast.typeCode }
   func encode(to:HierEncoder) {
-    to.write(name)
+    to.ench(name)
   }
 }
 
@@ -43,13 +43,13 @@ class Flyer : BaseBeast {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"F") {
     (from) in
-    return try Flyer(name:from.read(), maxAltitude:from.read(), airSpeed:from.read())
+    return try Flyer(name:from.dech(), maxAltitude:from.dech(), airSpeed:from.dech())
   }
   override func typeKey() -> String { return Flyer.typeCode }
   override func encode(to:HierEncoder) {
     super.encode(to:to)
-    to.write(maxAltitude)
-    to.write(airSpeed)
+    to.ench(maxAltitude)
+    to.ench(airSpeed)
   }
 }
 
@@ -79,14 +79,14 @@ class Walker : BaseBeast {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"W") {
     (from) in
-    return try Walker(name:from.read(), legs:from.read(), hasTail:from.read(), pet:from.readOptionalObject() as? BaseBeast)
+    return try Walker(name:from.dech(), legs:from.dech(), hasTail:from.dech(), pet:from.dechOptionalObject() as? BaseBeast)
   }
   override func typeKey() -> String { return Walker.typeCode }
   override func encode(to:HierEncoder) {
     super.encode(to:to)
-    to.write(numLegs)
-    to.write(hasTail)
-    to.write(pet)
+    to.ench(numLegs)
+    to.ench(hasTail)
+    to.ench(pet)
   }
 }
 
@@ -99,12 +99,12 @@ struct Zoo : HierCodable {
   //MARK HierCodable
   private static let typeCode = HierCodableFactories.Register(key:"Zoo") {
     (from) in
-      let creaturesDecoded = (try? from.readArray()) ?? [HierCodable]()
+      let creaturesDecoded = (try? from.dechArray()) ?? [HierCodable]()
       return Zoo(creatures:creaturesDecoded as! [BaseBeast])
     }
   func typeKey() -> String { return Zoo.typeCode }
   func encode(to:HierEncoder) {
-    to.write(creatures)
+    to.ench(creatures)
   }
 }
 

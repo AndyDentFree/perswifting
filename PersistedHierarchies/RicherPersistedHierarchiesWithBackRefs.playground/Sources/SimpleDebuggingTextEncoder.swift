@@ -23,20 +23,20 @@ public class SimpleDebuggingTextEncoder : HierEncoder {
   }
   
   public func encode(_ topObj:HierCodable) -> String {
-    // write top of tree
-    write(topObj)
+    // ench top of tree
+    ench(topObj)
     return buffer
   }
   
-  public func write(_ value:String)  {
+  public func ench(_ value:String)  {
      appendStr("\"\(value)\":String")
   }
   
-  public func write<T>(_ value:T)  {
+  public func ench<T>(_ value:T)  {
     appendStr("\(value):\(T.self)")
   }
   
-  public func write<T>(_ value:T?)  {
+  public func ench<T>(_ value:T?)  {
     if value == nil {
       appendStr("nil optional:\(T.self)")
     } else {
@@ -44,32 +44,32 @@ public class SimpleDebuggingTextEncoder : HierEncoder {
     }
   }
   
-  // pick up default protocols for write HierCodable
+  // pick up default protocols for ench HierCodable
 
   // override HierCodable? to describe if otional is missing
-  public func write(_ typedObject:HierCodable?) {
+  public func ench(_ typedObject:HierCodable?) {
     if typedObject == nil {
       appendStr("nil optional HierCodable")
     }
     else {
-      write(typedObject!)
+      ench(typedObject!)
     }
   }
   
   // override [HierCodable] to describe that it's an array
-  public func write(_ typedObjects:[HierCodable]) {
+  public func ench(_ typedObjects:[HierCodable]) {
     // nested collections start a new container
     appendStr("[")
     pushContext()
-    write(typedObjects.count)  // leading count in default format
+    ench(typedObjects.count)  // leading count in default format
     typedObjects.forEach {
-      write($0)
+      ench($0)
     }
     popContext()
     appendStr("]")
   }
 
-  public func writeRef(_ typedObject:HierCodable?) {
+  public func enchRef(_ typedObject:HierCodable?) {
     if typedObject == nil {
       appendStr("ref to nil optional HierCodable")
     }

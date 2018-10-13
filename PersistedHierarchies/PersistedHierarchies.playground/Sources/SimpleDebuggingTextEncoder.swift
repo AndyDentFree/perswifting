@@ -23,30 +23,30 @@ public class SimpleDebuggingTextEncoder : HierEncoder {
   }
   
   public func encode(_ topObj:HierCodable) -> String {
-    // write top of tree
-    write(topObj)
+    // ench top of tree
+    ench(topObj)
     return buffer
   }
   
-  public func write(_ value:String)  {
+  public func ench(_ value:String)  {
      appendStr("\"\(value)\":String")
   }
   
-  public func write<T>(_ value:T)  {
+  public func ench<T>(_ value:T)  {
     appendStr("\(value):\(T.self)")
   }
   
   //TODO add other binary types
   
-  // pick up default protocols for write HierCodable
+  // pick up default protocols for ench HierCodable
   // override [HierCodable] to describe that it's an array
-  public func write(_ typedObjects:[HierCodable]) {
+  public func ench(_ typedObjects:[HierCodable]) {
     // nested collections start a new container
     appendStr("[")
     pushContext()
-    write(typedObjects.count)  // leading count in default format
+    ench(typedObjects.count)  // leading count in default format
     typedObjects.forEach {
-      write($0)
+      ench($0)
     }
     popContext()
     appendStr("]")

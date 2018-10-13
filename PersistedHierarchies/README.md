@@ -9,7 +9,7 @@ These use a binary coding class mainly copied from Mike Ash's sample which he im
 
 See the [article](https://www.mikeash.com/pyblog/friday-qa-2017-07-28-a-binary-coder-for-swift.html) or go straight to the [github repository](https://github.com/mikeash/BinaryCoder/tree/887cecd70c070d86f338065f59ed027c13952c83).
 
-I grabbed the internals of his binary encoding and added a little bit of logic on top to use with the Hirarchical encoders.
+I grabbed the internals of his binary encoding and added a little bit of logic on top to use with the Hierarchical encoders.
 
 Note that the terms _class_ and _object_ are used because the main motivator for this work is the sub-classing relationship not being handled by Codable.
 
